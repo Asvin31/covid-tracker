@@ -12,6 +12,7 @@ import * as React from 'react';
 import { useEffect, useState } from "react";
 import CovidCards from '../components/CovidCards';
 import CovidGraph from '../components/CovidGraph';
+import CovidMap from '../components/CovidMap';
 import CovidTable from '../components/CovidTable';
 import { sortData } from '../utils';
 
@@ -22,6 +23,9 @@ export default function Home() {
   const [countryInfo, setCountryInfo] = useState(null);
   const [tableData, setTableData] = useState([]);
   const [caseType, setCaseType] = useState('cases')
+  const [mapCenter, setMapCenter] = useState({ lat: 34.80746, lng: -40.4796 });
+  const [mapZoom, setMapZoom] = useState(3);
+  const [loaded, setLoaded] = useState(false)
 
   const handleChange = async (event) => {
     const tempCountry = event.target.value;
@@ -34,6 +38,7 @@ export default function Home() {
 
   useEffect(() => {
     getCountries();
+    setLoaded(true)
   }, [])
 
   const getCountries = async () => {
@@ -50,10 +55,13 @@ export default function Home() {
 
   useEffect(() => {
     let url = "https://disease.sh/v3/covid-19/";
-    url += country == "worldwide" ? "all" : `countries/${country}`;
+    let checkCountry = country == "worldwide"
+    url += checkCountry ? "all" : `countries/${country}`;
     fetch(url).then(function (response) {
       response.json().then(function (result) {
         setCountryInfo(result)
+        !checkCountry && setMapCenter([data.countryInfo.lat, data.countryInfo.long]);
+        !checkCountry && setMapZoom(4);
       })
     })
   }, [country])
@@ -111,6 +119,7 @@ export default function Home() {
               total={countryInfo?.deaths}
             />
           </Stack>
+          {loaded && <CovidMap mapCenter={mapCenter} mapZoom={mapZoom} />}
         </Grid>
         <Grid item sm={4} xs={12} md={4}>
           <Card>
